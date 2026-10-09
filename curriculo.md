@@ -10,7 +10,7 @@ Campinas, SP - Brasil | +55 (19) 97120-0192 | mateushoffmandev@gmail.com
 
 ## 📌 RESUMO EXECUTIVO
 
-Engenheiro de Software Full Stack Sênior com 5 anos de experiência no desenvolvimento, sustentação e escala de ecossistemas digitais de alta complexidade. Especializado na stack **TypeScript (React.js, React Native/Expo, Node.js/Fastify)**, com experiência também em **Java (Spring Boot)** e **Python (FastAPI / LangGraph)** para APIs de borda e agentes de IA. Atua em arquiteturas em nuvem **AWS (Lambda, SNS, SQS, S3, EventBridge, CloudWatch)** e em produtos com **chatbots, streaming SSE, observabilidade OpenTelemetry (Grafana / Tempo / Loki / Prometheus)** e provedores de LLM (**NVIDIA NIM**, Google Gemini). Possui histórico comprovado em liderança técnica de agentes de IA (RAG + function calling), produtos financeiros (Fintech / Banking as a Service), automação fiscal e modernização de sistemas legados (MongoDB → PostgreSQL).
+Engenheiro de Software Full Stack Sênior com 5 anos de experiência no desenvolvimento, sustentação e escala de ecossistemas digitais de alta complexidade. Especializado na stack **TypeScript (React.js, React Native/Expo, Node.js/Fastify)**, com experiência também em **Java (Spring Boot)** e **Python** para APIs, automações e análise de dados. Atua em arquiteturas em nuvem **AWS (Lambda, SNS, SQS, S3, EventBridge, CloudWatch)**, e em produtos com **chatbots, streaming SSE, rate limiting** e provedores de LLM (**OpenRouter**, Google Gemini). Possui histórico comprovado em liderança técnica de agentes de IA (RAG + function calling), produtos financeiros (Fintech / Banking as a Service), automação fiscal e modernização de sistemas legados (MongoDB → PostgreSQL).
 
 ---
 
@@ -21,25 +21,25 @@ Engenheiro de Software Full Stack Sênior com 5 anos de experiência no desenvol
 * **Interfaces Web & Bibliotecas:** React.js (biblioteca reativa de UI), Vite (bundler de alta performance), React Router, TanStack Router/Query (roteamento e data-fetching), Redux Toolkit / Zustand (estado global), react-markdown (renderização de respostas de chat).
 * **Aplicações Mobile:** React Native (framework multiplataforma nativo), Expo (EAS Build/Updates), React Navigation, Kubb (codegen de clients a partir de OpenAPI).
 * **Estilização & Componentização:** Tailwind CSS (utility-first CSS), Radix UI, Lucide Icons, React Hook Form + Zod (formulários tipados e validados).
-* **UX de Chat & Documentos:** streaming SSE no browser, sessão/histórico em localStorage, exportação de currículo em PDF (pdfmake).
+* **UX de Chat & Documentos:** streaming SSE no browser, localStorage, cookies.
 
 ### 2. Engenharia Backend & Arquitetura de Software
-* **Runtimes & Frameworks:** Node.js, Fastify (APIs de baixa latência com tipagem via Zod), Express.js (sistemas legados), Serverless Framework (AWS Lambda), **Java 25 + Spring Boot** (borda HTTP, validação, rate limit, proxy SSE), **Python 3.14 + FastAPI** (serviços de agente).
+* **Runtimes & Frameworks:** Node.js, Fastify (APIs de baixa latência com tipagem via Zod), Express.js (sistemas legados), Serverless Framework (AWS Lambda), **Java 21 + Spring Boot** (borda HTTP, validação, CORS, proxy SSE com virtual threads).
 * **Padrões de Comunicação:** RESTful APIs, **Server-Sent Events (SSE)** para chat em streaming, WebSockets (chat em tempo real), Webhooks autenticados, mensageria SNS/SQS com DLQ.
 * **Garantia de Qualidade & Contratos:** Jest / Vitest (cobertura 100% em serviços críticos), Zod (validação runtime), TypeSpec/OpenAPI, Biome/ESLint, Husky (hooks de pre-commit/pre-push).
 * **Modelagem de Dados & ORMs:** PostgreSQL (+ JDBC / Prisma ORM), MongoDB + Mongoose, Redis (cache, debounce e pub/sub), DynamoDB (auditoria de envios), pgvector (busca vetorial).
 
 ### 3. Engenharia de Inteligência Artificial & Agentes
-* **Modelos & Arquitetura:** RAG (Retrieval-Augmented Generation) com embeddings e busca semântica, Function Calling / tool use, veto de temas críticos em código, ACL por agente, grafo conversacional **LangGraph** (nós generate → guard), prompt engineering com currículo como knowledge base.
-* **Provedores & Orquestração:** **NVIDIA NIM** (API OpenAI-compatible, ex.: `deepseek-ai/deepseek-v4.1-flash`), Google Gemini (LLM e embeddings), n8n (automações de follow-up e webhooks), Digisac (canal WhatsApp).
-* **Chatbots & Guardrails:** chatbot público com streaming, rate limit alinhado ao provedor, sanitização de respostas, bloqueio de vazamento de secrets e rejeição de saídas degeneradas.
-* **Visão Computacional na Edge:** Edge AI (processamento de algoritmos de aprendizado de máquina diretamente no dispositivo cliente).
+* **Modelos & Arquitetura:** RAG (Retrieval-Augmented Generation) com embeddings e busca semântica, Function Calling / tool use, veto de temas críticos em código, prompt engineering, gerenciamento de **context window** (trim de histórico por orçamento de tokens).
+* **Provedores & Orquestração:** **OpenRouter** (API OpenAI-compatible), Google Gemini (LLM e embeddings), n8n (automações de follow-up e webhooks), Digisac (canal WhatsApp).
+* **Chatbots & Guardrails:** chatbot público com streaming SSE ponta a ponta, rate limit diário/semanal por IP, system prompt com regras anti-alucinação e formato Markdown obrigatório.
 
 ### 4. Nuvem, DevOps, Segurança & Observabilidade
 * **Serviços de Nuvem (AWS):** Lambda, S3, SQS, SNS, EventBridge Scheduler, CloudWatch (crons), SSM (secrets e orquestração EC2), CodeBuild/ECR.
+* **Deploy & Containers:** Docker / Docker Compose, Nginx como reverse proxy do frontend para a API.
 * **Comunicação & Pagamentos:** SendGrid (e-mail transacional), Digisac (WhatsApp), Celcoin (BaaS/Pix), Asaas (Pix/cartão).
-* **Segurança:** JWT + refresh cookies, bcrypt/argon2id, Helmet, rate limiting (API + UI), CORS, validação em borda, webhooks com Bearer/assinatura, IAM least-privilege em filas, hash de IP em sessões.
-* **CI/CD & Observabilidade:** Bitbucket Pipelines, Docker / Docker Compose, Sentry + OpenTelemetry, stack **LGTM** (Grafana + Tempo + Loki + Prometheus) com auditoria pública por `requestId`, LogRocket, Mixpanel, OneSignal.
+* **Segurança:** JWT + refresh cookies, bcrypt/argon2id, Helmet, rate limiting (API + UI), CORS, validação em borda, webhooks com Bearer/assinatura, IAM least-privilege em filas.
+* **CI/CD & Observabilidade:** Bitbucket Pipelines, Sentry + OpenTelemetry, LogRocket, Mixpanel, OneSignal.
 * **Infraestrutura Básica:** Administração de VPS Linux, Cloudflare (DNS e segurança de borda).
 
 ---
@@ -122,12 +122,11 @@ Engenheiro de Software Full Stack Sênior com 5 anos de experiência no desenvol
 
 ## 🧪 PROJETOS PESSOAIS DE IMPACTO (SIDE PROJECTS)
 
-### 1. HoffmanAI — Chatbot público do currículo com observabilidade OSS
-* **Descrição:** Case full stack em monorepo para recrutadores e tech leads: chat streaming sobre a trajetória profissional (com análise de fit de vaga), leitura/exportação do currículo e auditoria pública de requests — tudo instrumentado e auditável por `requestId`.
-* **Arquitetura:** 3 serviços em Docker Compose — **web** (React + TypeScript + Vite + Tailwind), **api** (Java 25 + Spring Boot como borda pública) e **agent** (Python + FastAPI + LangGraph na rede interna); PostgreSQL para sessões/mensagens/audit; browser fala **somente** com a API.
-* **Chatbot & LLM:** integração com **NVIDIA NIM** (`integrate.api.nvidia.com`, modelo `deepseek-ai/deepseek-v4.1-flash`); fluxo LangGraph **generate → guard**; currículo injetado no system prompt; streaming **SSE** ponta a ponta; rate limit (40 msg/min) alinhado ao plano gratuito do provedor, com countdown na UI.
-* **Observabilidade:** OpenTelemetry (API + agent) → OTel Collector → **Tempo / Loki / Prometheus / Grafana** (Viewer anônimo); página `/observabilidade` com metadados ao vivo (latência, modelo, tokens, status) sem expor o texto do chat.
-* **Frontend & produto:** UI no estilo ChatGPT (sidebar, sessão em localStorage, markdown, export PDF do currículo), CORS/proxy de desenvolvimento e UX orientada a entrevista técnica (“pergunte sobre mim e veja o código/traces”).
+### 1. HoffmanAI — Chatbot público do currículo com streaming SSE
+* **Descrição:** Case full stack em monorepo para recrutadores e tech leads: chat streaming sobre a trajetória profissional (com análise de fit de vaga), leitura e exportação do currículo em PDF — UX orientada a entrevista técnica (“pergunte sobre mim”).
+* **Arquitetura:** 2 serviços em Docker Compose / **Fly.io** — **web** (React 19 + TypeScript + Vite + Tailwind + Nginx) e **api** (Java 21 + Spring Boot como borda pública); browser fala com a API via proxy Nginx (produção) ou Vite (dev); sem banco — histórico de chat em localStorage.
+* **Chatbot & LLM:** integração com **OpenRouter**; `curriculo.md` empacotado no classpath e injetado no system prompt (fonte única de verdade); streaming **SSE** ponta a ponta; **virtual threads** no handler; trim de histórico por **context window** (~20k tokens de entrada); rate limit **30 msg/dia e 100/semana por IP**.
+* **Frontend & produto:** UI estilo ChatGPT (sidebar, markdown GFM, export PDF do currículo), rotas `/` (chat) e `/curriculo`, CORS configurável e deploy em Fly.io (região GRU) com web e API em rede interna.
 
 ### 2. HairHub — Agente de IA para Agendamentos
 * **Descrição:** Secretária virtual para barbearias baseada em Inteligência Artificial para atendimento automatizado.
@@ -150,5 +149,5 @@ Engenheiro de Software Full Stack Sênior com 5 anos de experiência no desenvol
 ## 🌐 IDIOMAS & CONCEITOS ARQUITETURAIS
 
 * **Português:** Idioma Nativo.
-* **Inglês:** Nível avançado para leitura de documentações técnicas, escrita e comunicação em ambientes de tecnologia.
-* **Conceitos de Engenharia de Software:** TDD (Test-Driven Development), SOLID (princípios de orientação a objetos e arquitetura limpa), Clean Architecture, DDD (Domain-Driven Design), Microsserviços, Arquitetura Serverless, Event-Driven Architecture, BFF/proxy SSE, monorepo poliglota (TypeScript + Java + Python), observabilidade como produto (traces/logs/métricas correlacionados).
+* **Inglês:** Conversação nível basíco, mas já estou fazendo 1 hora de aula todos os dias de conversação.
+* **Conceitos de Engenharia de Software:** TDD (Test-Driven Development), SOLID (princípios de orientação a objetos e arquitetura limpa), Clean Architecture, DDD (Domain-Driven Design), Microsserviços, Arquitetura Serverless, Event-Driven Architecture, BFF/proxy SSE, monorepo poliglota (TypeScript + Java), context window e rate limiting em APIs de LLM, deploy containerizado.
