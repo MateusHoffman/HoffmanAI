@@ -1,4 +1,4 @@
-import { ArrowUp, Briefcase, Building, Code, FileText, RotateCcw, Sparkles, Square } from "lucide-react";
+import { ArrowUp, Briefcase, FileText, RotateCcw, Sparkles, Square } from "lucide-react";
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { WhatsAppIcon } from "../../components/BrandIcons";
@@ -17,6 +17,7 @@ export function ChatPage() {
   const bottomRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const abortRef = useRef<AbortController | null>(null);
+  const isEmpty = messages.length === 0;
 
   useEffect(() => {
     saveMessages(messages);
@@ -131,9 +132,11 @@ export function ChatPage() {
   }
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col">
-      <div className="min-h-0 flex-1 overflow-y-auto">
-        {messages.length === 0 ? (
+    <div className={`relative flex min-h-0 flex-1 flex-col ${isEmpty ? "overflow-hidden" : ""}`}>
+      {isEmpty ? <EmptyAtmosphere /> : null}
+
+      <div className="relative z-10 min-h-0 flex-1 overflow-y-auto">
+        {isEmpty ? (
           <EmptyState
             blocked={busy}
             onPrompt={(p) => void send(p)}
@@ -178,9 +181,19 @@ export function ChatPage() {
         )}
       </div>
 
-      <div className="shrink-0 bg-[var(--bg)] px-3 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] md:px-4">
+      <div
+        className={`relative z-10 shrink-0 px-3 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] md:px-4 ${
+          isEmpty ? "bg-transparent" : "bg-[var(--bg)]"
+        }`}
+      >
         <form onSubmit={onSubmit} className="mx-auto w-full max-w-3xl">
-          <div className="flex items-end gap-2 rounded-[28px] bg-[var(--surface)] py-2 pr-2 pl-2 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.08)] focus-within:shadow-[inset_0_0_0_1px_rgba(255,255,255,0.18)]">
+          <div
+            className={`flex items-end gap-2 rounded-[28px] bg-[var(--surface)] py-2 pr-2 pl-2 transition-shadow ${
+              isEmpty
+                ? "shadow-[inset_0_0_0_1px_rgba(43,140,255,0.35),0_0_0_1px_rgba(43,140,255,0.12),0_12px_40px_rgba(0,0,0,0.45)] focus-within:shadow-[inset_0_0_0_1px_rgba(43,140,255,0.55),0_0_0_1px_rgba(43,140,255,0.2),0_16px_48px_rgba(0,0,0,0.5)]"
+                : "shadow-[inset_0_0_0_1px_rgba(255,255,255,0.08)] focus-within:shadow-[inset_0_0_0_1px_rgba(255,255,255,0.18)]"
+            }`}
+          >
             <textarea
               ref={textareaRef}
               value={input}
@@ -210,6 +223,159 @@ export function ChatPage() {
   );
 }
 
+function EmptyAtmosphere() {
+  const forwardRef = useRef<HTMLVideoElement>(null);
+  const reverseRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const forward = forwardRef.current;
+    const reverse = reverseRef.current;
+    if (!forward || !reverse) return;
+
+    let alive = true;
+    let busy = false;
+    let forwardDir = true;
+
+    const waitSeeked = (video: HTMLVideoElement, time: number) =>
+      new Promise<void>((resolve) => {
+        if (Math.abs(video.currentTime - time) < 0.02 && video.readyState >= 2) {
+          resolve();
+          return;
+        }
+        const done = () => {
+          video.removeEventListener("seeked", done);
+          resolve();
+        };
+        video.addEventListener("seeked", done);
+        video.currentTime = time;
+      });
+
+    const waitPaintedFrame = (video: HTMLVideoElement) =>
+      new Promise<void>((resolve) => {
+        const withRvcf = video as HTMLVideoElement & {
+          requestVideoFrameCallback?: (cb: () => void) => number;
+        };
+        if (typeof withRvcf.requestVideoFrameCallback === "function") {
+          withRvcf.requestVideoFrameCallback(() => resolve());
+          return;
+        }
+        const done = () => {
+          video.removeEventListener("timeupdate", done);
+          resolve();
+        };
+        video.addEventListener("timeupdate", done);
+      });
+
+    const swapTo = async (next: HTMLVideoElement, prev: HTMLVideoElement) => {
+      if (!alive || busy) return;
+      busy = true;
+      try {
+        next.pause();
+        await waitSeeked(next, 0);
+        if (!alive) return;
+        await next.play();
+        await waitPaintedFrame(next);
+        if (!alive) return;
+        // Só esconde o anterior depois do próximo já ter frame na tela.
+        next.style.zIndex = "2";
+        next.style.opacity = "1";
+        prev.style.opacity = "0";
+        prev.style.zIndex = "1";
+        prev.pause();
+      } finally {
+        busy = false;
+      }
+    };
+
+    const warmInactive = (inactive: HTMLVideoElement) => {
+      if (inactive.readyState >= 2 && inactive.currentTime < 0.05) return;
+      try {
+        inactive.currentTime = 0;
+      } catch {
+        /* ignore */
+      }
+    };
+
+    const onForwardTime = () => {
+      if (!forwardDir || !Number.isFinite(forward.duration)) return;
+      if (forward.duration - forward.currentTime < 0.6) warmInactive(reverse);
+    };
+
+    const onReverseTime = () => {
+      if (forwardDir || !Number.isFinite(reverse.duration)) return;
+      if (reverse.duration - reverse.currentTime < 0.6) warmInactive(forward);
+    };
+
+    const onForwardEnded = () => {
+      if (!alive || !forwardDir) return;
+      forwardDir = false;
+      void swapTo(reverse, forward);
+    };
+
+    const onReverseEnded = () => {
+      if (!alive || forwardDir) return;
+      forwardDir = true;
+      void swapTo(forward, reverse);
+    };
+
+    forward.loop = false;
+    reverse.loop = false;
+    forward.style.zIndex = "2";
+    forward.style.opacity = "1";
+    reverse.style.zIndex = "1";
+    reverse.style.opacity = "0";
+    warmInactive(reverse);
+
+    forward.addEventListener("ended", onForwardEnded);
+    reverse.addEventListener("ended", onReverseEnded);
+    forward.addEventListener("timeupdate", onForwardTime);
+    reverse.addEventListener("timeupdate", onReverseTime);
+    void forward.play().catch(() => undefined);
+
+    return () => {
+      alive = false;
+      forward.removeEventListener("ended", onForwardEnded);
+      reverse.removeEventListener("ended", onReverseEnded);
+      forward.removeEventListener("timeupdate", onForwardTime);
+      reverse.removeEventListener("timeupdate", onReverseTime);
+    };
+  }, []);
+
+  return (
+    <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden" aria-hidden>
+      <video
+        ref={forwardRef}
+        className="absolute inset-0 h-full w-full object-cover"
+        autoPlay
+        muted
+        playsInline
+        preload="auto"
+        poster="/empty-atmosphere.jpg"
+      >
+        <source src="/empty-atmosphere.mp4" type="video/mp4" />
+      </video>
+      <video
+        ref={reverseRef}
+        className="absolute inset-0 h-full w-full object-cover"
+        muted
+        playsInline
+        preload="auto"
+      >
+        <source src="/empty-atmosphere-rev.mp4" type="video/mp4" />
+      </video>
+      <div className="absolute inset-0 z-[3] bg-[radial-gradient(ellipse_at_center,rgba(10,12,18,0.35)_0%,rgba(10,12,18,0.72)_52%,rgba(10,12,18,0.9)_100%)]" />
+      <div className="absolute inset-0 z-[3] bg-gradient-to-b from-black/20 via-transparent to-[var(--bg)]" />
+      <div
+        className="absolute inset-0 z-[3] opacity-[0.12] mix-blend-overlay"
+        style={{
+          backgroundImage:
+            "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E\")",
+        }}
+      />
+    </div>
+  );
+}
+
 function EmptyState({
   blocked,
   onPrompt,
@@ -220,29 +386,38 @@ function EmptyState({
   onFit: () => void;
 }) {
   return (
-    <div className="flex min-h-full flex-col px-4 py-6">
-      <div className="m-auto w-full max-w-2xl">
-        <h1 className="text-center text-[28px] font-medium tracking-tight">Como posso ajudar?</h1>
-        <p className="mt-2 text-center text-sm text-[var(--text-muted)]">
-          Pergunte sobre a trajetória do Mateus Hoffman ou comece por um atalho.
+    <div className="flex min-h-full flex-col px-4 pt-16 pb-8 sm:pt-20 sm:pb-10">
+      <div className="m-auto flex w-full max-w-2xl flex-col items-center text-center">
+        <p className="empty-rise">
+          <span className="font-display brand-stretch text-[clamp(2.75rem,8vw,4.25rem)] leading-none font-extrabold tracking-[-0.04em] text-white">
+            HoffmanAI
+          </span>
         </p>
-        <div className="mt-8 grid w-full grid-cols-1 gap-3 sm:grid-cols-2">
-          <Starter href={WHATSAPP_URL} external icon={<WhatsAppIcon size={18} />} title="Chamar no WhatsApp" subtitle="Mensagem direta para o Mateus" />
-          <Starter to="/curriculo" icon={<FileText size={18} strokeWidth={1.75} />} title="Ver currículo completo" subtitle="Experiência, stack e projetos" />
-          <Starter icon={<Briefcase size={18} strokeWidth={1.75} />} title="Enviar descrição da vaga" subtitle="Ver se o perfil dá fit" disabled={blocked} onClick={onFit} />
-          <Starter icon={<Sparkles size={18} strokeWidth={1.75} />} title="Experiência com IA" subtitle="RAG, agentes e function calling" disabled={blocked} onClick={() => onPrompt("Qual a experiência dele com RAG e agentes?")} />
-          <Starter icon={<Building size={18} strokeWidth={1.75} />} title="O que ele fez na SuaMEi" subtitle="Liderança técnica e produtos" disabled={blocked} onClick={() => onPrompt("O que ele fez na SuaMEi?")} />
-          <Starter icon={<Code size={18} strokeWidth={1.75} />} title="Quais stacks ele domina" subtitle="TypeScript, cloud e backend" disabled={blocked} onClick={() => onPrompt("Quais stacks ele domina?")} />
+        <h1 className="empty-rise empty-rise-delay-1 mt-4 max-w-xl text-[clamp(1.15rem,3.2vw,1.55rem)] leading-snug font-medium tracking-tight text-white/95">
+          Pergunte qualquer coisa sobre o Mateus.
+        </h1>
+        <p className="empty-rise empty-rise-delay-2 mt-2 max-w-md text-sm leading-6 text-[var(--text-muted)] sm:text-[15px]">
+          Trajetória, stack e fit de vaga — em chat.
+        </p>
+        <div className="mt-8 flex w-full max-w-xl flex-wrap items-center justify-center gap-2">
+          <Chip icon={<Briefcase size={15} strokeWidth={1.75} />} label="Colar vaga" disabled={blocked} onClick={onFit} />
+          <Chip
+            icon={<Sparkles size={15} strokeWidth={1.75} />}
+            label="Experiência com IA"
+            disabled={blocked}
+            onClick={() => onPrompt("Qual a experiência dele com RAG e agentes?")}
+          />
+          <Chip icon={<FileText size={15} strokeWidth={1.75} />} label="Ver currículo" to="/curriculo" />
+          <Chip icon={<WhatsAppIcon size={15} />} label="WhatsApp" href={WHATSAPP_URL} external />
         </div>
       </div>
     </div>
   );
 }
 
-function Starter({
+function Chip({
   icon,
-  title,
-  subtitle,
+  label,
   onClick,
   href,
   to,
@@ -250,8 +425,7 @@ function Starter({
   disabled,
 }: {
   icon: ReactNode;
-  title: string;
-  subtitle: string;
+  label: string;
   onClick?: () => void;
   href?: string;
   to?: string;
@@ -259,17 +433,19 @@ function Starter({
   disabled?: boolean;
 }) {
   const className =
-    "flex items-start gap-3 rounded-2xl border border-white/10 px-4 py-3.5 text-left transition-colors hover:bg-white/5 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-40";
+    "empty-chip inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/[0.04] px-3.5 py-2 text-sm text-[var(--text)] backdrop-blur-sm transition-colors hover:border-white/20 hover:bg-white/[0.08] focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-40";
   const body = (
     <>
-      <span className="mt-0.5 text-[var(--text-muted)]">{icon}</span>
-      <span>
-        <span className="block text-sm font-medium">{title}</span>
-        <span className="mt-0.5 block text-xs leading-5 text-[var(--text-muted)]">{subtitle}</span>
-      </span>
+      <span className="text-[var(--text-muted)]">{icon}</span>
+      <span>{label}</span>
     </>
   );
-  if (to) return <Link to={to} className={className}>{body}</Link>;
+  if (to)
+    return (
+      <Link to={to} className={className}>
+        {body}
+      </Link>
+    );
   if (href)
     return (
       <a href={href} target={external ? "_blank" : undefined} rel={external ? "noreferrer" : undefined} className={className}>

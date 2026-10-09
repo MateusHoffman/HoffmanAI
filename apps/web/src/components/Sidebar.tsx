@@ -6,13 +6,20 @@ import { LinkedInIcon, WhatsAppIcon } from "./BrandIcons";
 
 type Props = {
   collapsed: boolean;
+  glass?: boolean;
   onNewChat: () => void;
   onToggle: () => void;
 };
 
-export function Sidebar({ collapsed, onNewChat, onToggle }: Props) {
+export function Sidebar({ collapsed, glass = false, onNewChat, onToggle }: Props) {
   return (
-    <div className="flex h-full w-full flex-col bg-[var(--sidebar)]">
+    <div
+      className={`flex h-full w-full flex-col ${
+        glass
+          ? "border-r border-white/8 bg-black/25 backdrop-blur-xl backdrop-saturate-150"
+          : "bg-[var(--sidebar)]"
+      }`}
+    >
       <div className={`flex h-12 shrink-0 items-center px-2 ${collapsed ? "justify-center" : "gap-0.5"}`}>
         {collapsed ? (
           <IconButton onClick={onToggle} label="Abrir barra lateral">
@@ -37,7 +44,11 @@ export function Sidebar({ collapsed, onNewChat, onToggle }: Props) {
         <Item collapsed={collapsed} to="/curriculo" icon={<FileText size={18} strokeWidth={1.75} />} label="Currículo" />
       </nav>
 
-      <div className={`shrink-0 space-y-0.5 border-t border-white/10 px-2 py-2 ${collapsed ? "flex flex-col items-center" : ""}`}>
+      <div
+        className={`shrink-0 space-y-0.5 px-2 py-2 ${glass ? "border-t border-white/8" : "border-t border-white/10"} ${
+          collapsed ? "flex flex-col items-center" : ""
+        }`}
+      >
         <Item collapsed={collapsed} href={LINKEDIN_URL} icon={<LinkedInIcon size={18} />} label="LinkedIn" />
         <Item collapsed={collapsed} href={WHATSAPP_URL} icon={<WhatsAppIcon size={18} />} label="WhatsApp" />
       </div>

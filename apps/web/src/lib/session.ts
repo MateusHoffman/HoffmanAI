@@ -1,5 +1,6 @@
 const MESSAGES_KEY = "hoffmanai.messages";
 export const SESSION_CLEARED_EVENT = "hoffmanai:session-cleared";
+export const MESSAGES_CHANGED_EVENT = "hoffmanai:messages-changed";
 
 export type ChatMessage = {
   role: "user" | "assistant";
@@ -23,11 +24,13 @@ export function getMessages(): ChatMessage[] {
 export function saveMessages(messages: ChatMessage[]): void {
   if (messages.length === 0) localStorage.removeItem(MESSAGES_KEY);
   else localStorage.setItem(MESSAGES_KEY, JSON.stringify(messages));
+  window.dispatchEvent(new Event(MESSAGES_CHANGED_EVENT));
 }
 
 export function clearChatSession(): void {
   localStorage.removeItem(MESSAGES_KEY);
   window.dispatchEvent(new Event(SESSION_CLEARED_EVENT));
+  window.dispatchEvent(new Event(MESSAGES_CHANGED_EVENT));
 }
 
 function isMessage(value: unknown): value is ChatMessage {

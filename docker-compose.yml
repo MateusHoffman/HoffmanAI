@@ -15,5 +15,7 @@ services:
       dockerfile: apps/web/Dockerfile
     ports:
       - "5174:80"
+    environment:
+      API_UPSTREAM: api:8080
     depends_on:
       - api

@@ -4,6 +4,9 @@ primary_region = "gru"
 [build]
   dockerfile = "Dockerfile"
 
+[env]
+  API_UPSTREAM = "hoffmanai-api.internal:8080"
+
 [http_service]
   internal_port = 80
   force_https = true

@@ -14,6 +14,7 @@
   --ok: #3ecf8e;
   --err: #ff8b80;
   --warn: #e3b341;
+  --font-display: "Syne", ui-sans-serif, system-ui, sans-serif;
   color-scheme: dark;
 }
 
@@ -51,6 +52,16 @@ a {
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
 
+.font-display {
+  font-family: var(--font-display);
+}
+
+.brand-stretch {
+  display: inline-block;
+  transform: scaleY(1.85);
+  transform-origin: bottom center;
+}
+
 @keyframes pulse-dot {
   0%,
   100% {
@@ -63,6 +74,60 @@ a {
 
 .pulse-dot {
   animation: pulse-dot 1.2s ease-in-out infinite;
+}
+
+@keyframes empty-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.empty-rise {
+  animation: empty-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.empty-rise-delay-1 {
+  animation-delay: 80ms;
+}
+
+.empty-rise-delay-2 {
+  animation-delay: 160ms;
+}
+
+.empty-rise-delay-3 {
+  animation-delay: 240ms;
+}
+
+.empty-chip {
+  animation: empty-rise 0.65s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.empty-chip:nth-child(1) {
+  animation-delay: 280ms;
+}
+
+.empty-chip:nth-child(2) {
+  animation-delay: 340ms;
+}
+
+.empty-chip:nth-child(3) {
+  animation-delay: 400ms;
+}
+
+.empty-chip:nth-child(4) {
+  animation-delay: 460ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .empty-rise,
+  .empty-chip {
+    animation: none;
+  }
 }
 
 .markdown-body :first-child {

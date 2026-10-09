@@ -1,7 +1,7 @@
 import { PanelLeft, SquarePen } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { clearChatSession } from "../lib/session";
+import { clearChatSession, getMessages, MESSAGES_CHANGED_EVENT, SESSION_CLEARED_EVENT } from "../lib/session";
 import { Sidebar } from "./Sidebar";
 
 const SIDEBAR_KEY = "hoffmanai.sidebarCollapsed";
@@ -9,11 +9,24 @@ const SIDEBAR_KEY = "hoffmanai.sidebarCollapsed";
 export function AppShell({ children }: { children: ReactNode }) {
   const [collapsed, setCollapsed] = useState(() => localStorage.getItem(SIDEBAR_KEY) === "1");
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [chatEmpty, setChatEmpty] = useState(() => getMessages().length === 0);
   const desktop = useIsDesktop();
   const location = useLocation();
   const navigate = useNavigate();
 
   useEffect(() => setMobileOpen(false), [location.pathname]);
+
+  useEffect(() => {
+    function syncEmpty() {
+      setChatEmpty(getMessages().length === 0);
+    }
+    window.addEventListener(MESSAGES_CHANGED_EVENT, syncEmpty);
+    window.addEventListener(SESSION_CLEARED_EVENT, syncEmpty);
+    return () => {
+      window.removeEventListener(MESSAGES_CHANGED_EVENT, syncEmpty);
+      window.removeEventListener(SESSION_CLEARED_EVENT, syncEmpty);
+    };
+  }, []);
 
   function toggleSidebar() {
     if (desktop) {
@@ -34,9 +47,16 @@ export function AppShell({ children }: { children: ReactNode }) {
   const title = location.pathname.startsWith("/curriculo") ? "Currículo" : "HoffmanAI";
   const sidebarCollapsed = desktop ? collapsed : false;
   const mobileHidden = !desktop && !mobileOpen;
+  const glass = location.pathname === "/" && chatEmpty;
+  const glassChrome =
+    "border-white/8 bg-black/25 backdrop-blur-xl backdrop-saturate-150";
 
   return (
-    <div className="flex h-dvh overflow-hidden bg-[var(--bg)] text-[var(--text)]">
+    <div
+      className={`relative flex h-dvh overflow-hidden text-[var(--text)] ${
+        glass ? "bg-transparent" : "bg-[var(--bg)]"
+      }`}
+    >
       {mobileOpen ? (
         <button
           type="button"
@@ -53,11 +73,20 @@ export function AppShell({ children }: { children: ReactNode }) {
           mobileOpen ? "w-[260px] translate-x-0" : "w-[260px] -translate-x-full md:translate-x-0"
         }`}
       >
-        <Sidebar collapsed={sidebarCollapsed} onNewChat={onNewChat} onToggle={toggleSidebar} />
+        <Sidebar
+          collapsed={sidebarCollapsed}
+          glass={glass}
+          onNewChat={onNewChat}
+          onToggle={toggleSidebar}
+        />
       </aside>
 
-      <div className="flex min-w-0 flex-1 flex-col">
-        <header className="relative flex h-12 shrink-0 items-center px-2 md:hidden">
+      <div className="relative z-10 flex min-w-0 flex-1 flex-col">
+        <header
+          className={`z-20 flex h-12 shrink-0 items-center px-2 md:hidden ${
+            glass ? `absolute inset-x-0 top-0 border-b ${glassChrome}` : "relative"
+          }`}
+        >
           <div className="pointer-events-none absolute inset-0 flex items-center justify-center px-24">
             <span className="truncate text-sm font-medium">{title}</span>
           </div>
@@ -71,11 +100,15 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
         </header>
 
-        <header className="relative hidden h-12 shrink-0 items-center justify-center px-4 md:flex">
+        <header
+          className={`z-20 hidden h-12 shrink-0 items-center justify-center px-4 md:flex ${
+            glass ? `absolute inset-x-0 top-0 border-b ${glassChrome}` : "relative"
+          }`}
+        >
           <span className="truncate text-sm font-medium">{title}</span>
         </header>
 
-        <main className="flex min-h-0 flex-1 flex-col">{children}</main>
+        <main className="relative flex min-h-0 flex-1 flex-col">{children}</main>
       </div>
     </div>
   );
