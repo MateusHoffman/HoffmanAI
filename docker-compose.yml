@@ -1,0 +1,19 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    ports:
+      - "8080:8080"
+    env_file:
+      - apps/api/.env
+    environment:
+      CORS_ALLOWED_ORIGINS: http://localhost:5173,http://localhost:5174
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    ports:
+      - "5174:80"
+    depends_on:
+      - api
